@@ -109,6 +109,19 @@ def isvalid_date(date):
     except ValueError:
         return False
 
+def isvalid_time(hour,minute):
+    now = datetime.datetime.now()
+    now = datetime.datetime.now()
+    now_time = now.strftime("%H:%M")
+    hour1, minute1 = now_time.split(':')
+    hour1 = int(hour1)
+    minute1 = int(minute1)
+    if hour<hour1:
+        return True
+    elif hour==hour1 & minute<minute1:
+        return True
+    else:
+        return False
 
 def parse_int(n):
     try:
@@ -130,7 +143,7 @@ def build_validation_result(is_valid, violated_slot, message_content):
     }
 
 def validate_dining_suggestion(location, cuisine, time, date, numberOfPeople, phoneNumber):
-    locations = ['manhattan', 'new york']
+    locations = ['manhattan', 'new york', 'new jersey', 'jersey city', 'boston', 'queens', 'bronx', 'brooklyn']
     if location is not None and location.lower() not in locations:
         return build_validation_result(False,
                                        'City',
@@ -162,10 +175,15 @@ def validate_dining_suggestion(location, cuisine, time, date, numberOfPeople, ph
         if len(time) != 5:
             # Not a valid time; use a prompt defined on the build-time model.
             return build_validation_result(False, 'DiningTime', None)
+        
 
         hour, minute = time.split(':')
         hour = parse_int(hour)
         minute = parse_int(minute)
+        
+        if isvalid_time(hour,minute):
+            return build_validation_result(False, 'Time', 'This is a time in the past. Please type a time in the future.')
+
         if math.isnan(hour) or math.isnan(minute):
             # Not a valid time; use a prompt defined on the build-time model.
             return build_validation_result(False, 'Time', None)
@@ -209,9 +227,6 @@ def diningSuggestions(intent_request,context):
                                slots,
                                validation_result['violatedSlot'],
                                validation_result['message'])
-
-    # Order the flowers, and rely on the goodbye message of the bot to define the message to the end user.
-    # In a real bot, this would likely involve a call to a backend service.
     
         output_session_attributes = intent_request['sessionAttributes'] if intent_request['sessionAttributes'] is not None else {}
         return delegate(output_session_attributes, get_slots(intent_request))
